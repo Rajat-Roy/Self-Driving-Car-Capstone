@@ -114,21 +114,24 @@ class WaypointUpdater(object):
     
     def decelerate_waypoints(self, waypoints, closest_idx):
         temp = []
-        
         for i, wp in enumerate(waypoints):
             
             p = Waypoint()
             p.pose = wp.pose
             
             stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
-            dist = self.distance(waypoints, i, stop_idx)
-            vel = math.sqrt(2 * MAX_DECEL * dist)
-            if vel < 1. :
-                vel = 0
+            if i <= stop_idx:
+
+                dist = self.distance(waypoints, i, stop_idx)
+                vel = math.sqrt(2 * MAX_DECEL * dist)
+                if vel < 1. :
+                    vel = 0
+                    
+                p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+                temp.append(p)
+            else:
+                temp.append(wp)
                 
-            p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
-            temp.append(p)
-            
         return temp
         
     def pose_cb(self, msg):
